@@ -79,6 +79,7 @@ export const mockMessages:Message[] = [
         receiverId: 1,
         text: "I'm good, thanks!",
         time: "10:31 AM",
+        status: "sent",
         isMe: true,
     },
 //   {

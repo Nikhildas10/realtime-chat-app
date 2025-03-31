@@ -6,14 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send } from "lucide-react";
+import { Send, Check, CheckCheck } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { mockConversations, mockMessages } from "@/lib/mockchats";
 import { Message } from "@/lib/types";
 
-
 interface ChatInterfaceProps {
-
   selectedConversation: number | null;
   newMessage: string;
   onMessageChange: (message: string) => void;
@@ -33,11 +31,13 @@ export function ChatInterface({
   const currentConversation = mockConversations.find(
     (c) => c.id === selectedConversation
   );
-  
-  const messages=mockMessages?.filter((m:Message)=>
-   {return m.receiverId==2  && m.senderId==selectedConversation || m.senderId==2 && m.receiverId==selectedConversation
-  }) 
-  
+
+  const messages = mockMessages?.filter(
+    (m: Message) =>
+      (m.receiverId == 2 && m.senderId == selectedConversation) ||
+      (m.senderId == 2 && m.receiverId == selectedConversation)
+  );
+
   // Create a ref for the messages container
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -95,7 +95,7 @@ export function ChatInterface({
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
           <div className="p-4 space-y-4">
-            {messages?.map((message:Message) => (
+            {messages?.map((message: Message) => (
               <div
                 key={message.id}
                 className={`flex ${message.isMe ? "justify-end" : "justify-start"}`}
@@ -108,11 +108,28 @@ export function ChatInterface({
                   }`}
                 >
                   <p>{message.text}</p>
-                  <p
-                    className={`text-xs mt-1 ${message.isMe ? "text-gray-300" : "text-gray-500"}`}
-                  >
-                    {message.time}
-                  </p>
+                  <div className="flex items-center justify-end mt-1 space-x-1.5">
+                    <p
+                      className={`text-xs ${message.isMe ? "text-gray-300" : "text-gray-500"}`}
+                    >
+                      {message.time}
+                    </p>
+
+                    {/* Enhanced message status indicators */}
+                    {message.isMe && message.status && (
+                      <span className="flex items-center">
+                        {message.status === "read" ? (
+                          <div className="relative">
+                            <CheckCheck className="h-4 w-4 text-emerald-400 drop-shadow-sm" />
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <Check className="h-4 w-4 text-gray-300 drop-shadow-sm" />
+                          </div>
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
