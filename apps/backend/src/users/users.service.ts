@@ -1,14 +1,39 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { prisma } from 'src/utils/prismaConfig.,';
 import { Prisma } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { credentials } from 'src/config/credentials';
+import { uploadImage } from 'src/utils/imageUpload';
 
 @Injectable()
 export class UsersService {
   async create(createUserDto: Prisma.UserCreateInput) {
+    if (createUserDto.username) {
+      const existingUser = await prisma.user.findUnique({
+        where: { username: createUserDto.username },
+      });
+
+      if (existingUser) {
+        throw new BadRequestException('Username already exists');
+      }
+    }
+    if (createUserDto.email) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: createUserDto.email },
+      });
+
+      if (existingUser) {
+        throw new BadRequestException('Email already exists');
+      }
+    }
+
     createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
     const user = await prisma.user.create({
       data: createUserDto,
@@ -22,7 +47,7 @@ export class UsersService {
       where: {
         OR: [
           { email: createUserDto.email },
-          { username: createUserDto.username }, 
+          { username: createUserDto.username },
         ],
       },
     });
@@ -45,26 +70,35 @@ export class UsersService {
     return { accessToken, user: userWithoutPassword };
   }
 
-  findAll() {
-    return prisma.user.findMany();
-  }
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    if (updateUserDto.username) {
+      const existingUser = await prisma.user.findUnique({
+        where: { username: updateUserDto.username },
+      });
 
-  findOne(id: string) {
-    return prisma.user.findUnique({
-      where: { id },
-    });
-  }
-
-  update(id: string, updateUserDto: UpdateUserDto) {
+      if (existingUser && existingUser.id !== id) {
+        throw new BadRequestException('Username already exists');
+      }
+    }
+    if (updateUserDto.avatar?.includes('data:image/')) {
+      updateUserDto.avatar = await uploadImage(updateUserDto.avatar, 'avatar');
+    }
     return prisma.user.update({
       where: { id },
       data: updateUserDto,
     });
   }
 
-  remove(id: string) {
-    return prisma.user.delete({
-      where: { id },
+  async userNameAvailable(username: string) {
+    const user = await prisma.user.findUnique({
+      where: { username },
     });
+    console.log(user);
+
+    if (user) {
+      throw new BadRequestException('username already exists');
+    } else {
+      return { message: 'username is available' };
+    }
   }
 }
