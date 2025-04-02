@@ -101,4 +101,22 @@ export class UsersService {
       return { message: 'username is available' };
     }
   }
+
+  async findOne(id: string) {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select:{
+        id: true,
+        username: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+        avatar: true,
+      }
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
 }

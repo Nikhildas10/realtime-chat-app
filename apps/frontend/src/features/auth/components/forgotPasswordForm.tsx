@@ -1,12 +1,19 @@
-"use client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
+type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 interface ForgotPasswordFormProps {
-  onSubmit: (email: string) => Promise<void>;
+  onSubmit: (data: ForgotPasswordFormValues) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -14,28 +21,39 @@ export const ForgotPasswordForm = ({
   onSubmit,
   isLoading,
 }: ForgotPasswordFormProps) => {
-  const [email, setEmail] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordFormValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await onSubmit(email);
+  const handleFormSubmit = async (data: ForgotPasswordFormValues) => {
+    await onSubmit(data);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           type="email"
           placeholder="name@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          {...register("email")}
           required
-          className="autofill:bg-red" // Add this line
         />
+        {errors.email && (
+          <p className="text-red-500 text-sm">{errors.email.message}</p>
+        )}
       </div>
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button
+        type="submit"
+        variant={"black"}
+        className="w-full"
+        disabled={isLoading}
+      >
         {isLoading ? "Sending..." : "Send reset link"}
       </Button>
     </form>

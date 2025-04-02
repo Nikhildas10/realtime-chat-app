@@ -1,8 +1,5 @@
-"use client";
-
 import type React from "react";
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +7,16 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Menu, LogOut, Settings, UserIcon, Upload } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +26,10 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { useGetUser } from "@/api/auth/queries";
+import { useUpdateProfile } from "@/api/auth/mutations";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuthStore } from "@/store/authStore";
 
 interface Conversation {
   id: number;
@@ -46,19 +57,48 @@ export function Sidebar({
   onSearchChange,
   isMobile,
 }: SidebarProps) {
+  const { data, isLoading } = useGetUser();
+  const { mutate: updateProfile } = useUpdateProfile();
+  const logout = useAuthStore((state) => state.logout);
+
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
-  const [userName, setUserName] = useState("Your Name");
-  const [profileImage, setProfileImage] = useState(
-    "/placeholder.svg?height=40&width=40"
-  );
-  const [tempUserName, setTempUserName] = useState(userName);
-  const [tempProfileImage, setTempProfileImage] = useState(profileImage);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [userName, setUserName] = useState(data?.username || "");
+  const [profileImage, setProfileImage] = useState(data?.avatar || "");
+  const [tempUserName, setTempUserName] = useState(data?.username || "");
+  const [tempProfileImage, setTempProfileImage] = useState(data?.avatar || "");
   const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    if (data) {
+      setUserName(data.username || "");
+      setProfileImage(data.avatar || "");
+      setTempUserName(data.username || "");
+      setTempProfileImage(data.avatar || "");
+    }
+  }, [data]);
 
   const handleProfileUpdate = () => {
     setUserName(tempUserName);
     setProfileImage(tempProfileImage);
+
+    if (data?.id) {
+      const updateData: any = {
+        id: data.id,
+        username: tempUserName,
+      };
+      if (tempProfileImage !== data.avatar) {
+        updateData.avatar = tempProfileImage;
+      }
+      updateProfile(updateData);
+    }
+
     setProfileDialogOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setLogoutDialogOpen(false);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,16 +139,69 @@ export function Sidebar({
     }
   };
 
+  if (isLoading) {
+    return (
+      <div
+        className={`border-r border-gray-200 ${isMobile ? "w-full" : "w-80"}`}
+      >
+        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-8 w-8 rounded-full" />
+        </div>
+        <div className="p-4">
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="p-4 space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center space-x-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={`border-r border-gray-200 w-full ${isMobile ? "w-full" : "w-80"}`}
-    >
+    <div className={`border-r border-gray-200 ${isMobile ? "w-full" : "w-80"}`}>
+      {/* Logout AlertDialog - Fixed at root level */}
+      <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+        <AlertDialogContent className="z-[1000] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white p-6 rounded-lg shadow-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will log you out of your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-black cursor-pointer text-black">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="bg-black text-white cursor-pointer hover:bg-gray-800"
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Main Sidebar Content */}
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
         <h1 className="text-xl font-bold text-black">Chats</h1>
         <div className="flex space-x-2">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-black">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-black cursor-pointer"
+              >
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -117,7 +210,7 @@ export function Sidebar({
                 <div className="flex items-center space-x-3 p-4">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={profileImage} alt={userName} />
-                    <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
+                    <AvatarFallback>{userName?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium text-black">{userName}</p>
@@ -141,21 +234,13 @@ export function Sidebar({
                         Profile
                       </Button>
                     </li>
-                    <li>
-                      <Button
-                        variant="ghost"
-                        className="w-full cursor-pointer justify-start text-black"
-                      >
-                        <Settings className="mr-2 h-4 w-4" />
-                        Settings
-                      </Button>
-                    </li>
                   </ul>
                 </nav>
                 <div className="p-4">
                   <Button
                     variant="outline"
                     className="w-full cursor-pointer border-black text-black"
+                    onClick={() => setLogoutDialogOpen(true)}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
@@ -166,6 +251,8 @@ export function Sidebar({
           </Sheet>
         </div>
       </div>
+
+      {/* Search Input */}
       <div className="px-4">
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
@@ -177,6 +264,8 @@ export function Sidebar({
           />
         </div>
       </div>
+
+      {/* Conversations List */}
       <ScrollArea className="h-[calc(100vh-140px)]">
         <div className="p-2">
           {conversations.map((conversation) => (
@@ -195,7 +284,9 @@ export function Sidebar({
                     src={conversation.avatar || "/placeholder.svg"}
                     alt={conversation.name}
                   />
-                  <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>
+                    {conversation.name?.charAt(0)}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center">
@@ -237,9 +328,9 @@ export function Sidebar({
               >
                 <Avatar className="w-full h-full">
                   <AvatarImage src={tempProfileImage} alt={tempUserName} />
-                  <AvatarFallback>{tempUserName.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{tempUserName?.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <div className="absolute group-hover:inset-0  opacity-0 bg-black group-hover:opacity-30 transition-all flex items-center justify-center">
+                <div className="absolute group-hover:inset-0 opacity-0 bg-black group-hover:opacity-30 transition-all flex items-center justify-center">
                   <Upload className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <input

@@ -1,6 +1,12 @@
-"use client";
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { ForgotPasswordForm } from "../components/forgotPasswordForm";
@@ -10,12 +16,12 @@ export const ForgotPasswordPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
-  const handleSubmit = async (email: string) => {
+  const handleSubmit = async (data: { email: string }) => {
     setIsLoading(true);
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setEmail(email);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setEmail(data.email);
       setEmailSent(true);
     } finally {
       setIsLoading(false);
@@ -23,18 +29,16 @@ export const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen w-[450px] p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen px-4 flex items-center justify-center bg-background">
+      <Card className="w-[400px] max-w-md">
         {emailSent ? (
           <div className="p-6 text-center">
             <h2 className="text-2xl font-bold mb-2">Check your email</h2>
             <p className="text-muted-foreground mb-6">
-              We've sent password reset instructions to <span className="font-semibold">{email}</span>.
+              We've sent password reset instructions to{" "}
+              <span className="font-semibold">{email}</span>.
             </p>
-            <Link
-              to="/login"
-              className="text-sm text-primary hover:underline"
-            >
+            <Link to="/login" className="text-sm text-primary hover:underline">
               Return to login
             </Link>
           </div>
@@ -49,13 +53,13 @@ export const ForgotPasswordPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ForgotPasswordForm 
+              <ForgotPasswordForm
                 onSubmit={handleSubmit}
-                isLoading={isLoading} 
+                isLoading={isLoading}
               />
             </CardContent>
             <CardFooter className="flex justify-center">
-              <Link 
+              <Link
                 to="/login"
                 className="text-sm text-primary hover:underline"
               >

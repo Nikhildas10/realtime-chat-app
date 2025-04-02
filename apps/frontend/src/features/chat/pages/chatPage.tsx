@@ -1,10 +1,9 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { Sidebar } from "../components/chatSidebar";
 import { ChatInterface } from "../components/chatInterface";
 import { mockConversations, mockMessages } from "@/lib/mockchats";
+import { useGetUser } from "@/api/auth/queries";
 
 
 export default function ChatPage() {
@@ -16,8 +15,7 @@ export default function ChatPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [showConversations, setShowConversations] = useState(!isMobile);
-
-  useEffect(() => {
+    useEffect(() => {
     setShowConversations(!isMobile || !selectedConversation);
   }, [isMobile, selectedConversation]);
 

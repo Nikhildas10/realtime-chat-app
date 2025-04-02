@@ -7,17 +7,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { IUser } from "@/lib/types";
 import { SignupForm } from "../components/signupForm";
 
-interface SignupPageProps {
-  onSignup: (userData: IUser) => void;
-}
-
-export const SignupPage = ({ onSignup }: SignupPageProps) => {
+export const SignupPage = () => {
   return (
-    <div className=" bg-background flex items-center justify-center w-[450px] p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen px-4 flex items-center justify-center bg-background">
+      <Card className="w-[420px] max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
             Create an account
@@ -27,7 +22,7 @@ export const SignupPage = ({ onSignup }: SignupPageProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <SignupForm onSignup={onSignup} />
+          <SignupForm />
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">

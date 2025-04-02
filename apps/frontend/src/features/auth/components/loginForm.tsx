@@ -1,54 +1,51 @@
-"use client";
 
 import type React from "react";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
-import { IUser } from "@/lib/types";
+import { IUser } from "@repo/types";
+import { useLoginUser } from "@/api/auth/mutations";
 
-interface LoginFormProps {
-  onLogin: (userData: IUser) => void;
-}
+// 🔹 Define Zod Schema for validation
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
 
-export const LoginForm = ({ onLogin }: LoginFormProps) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+type LoginFormValues = z.infer<typeof loginSchema>;
+ 
+export const LoginForm = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+  });
+  const { mutate: loginUser, isPending } = useLoginUser();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      // In a real app, you would make an API call here
-      // Simulating API call with timeout
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Mock successful login
-      onLogin({ email });
-      navigate("/chat");
-    } catch (error) {
-      console.error("Login failed:", error);
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit = async (data: LoginFormValues) => {
+    loginUser(data);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           type="email"
-          placeholder="name@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
+          placeholder="Enter your email"
+          {...register("email")}
         />
+        {errors.email && (
+          <p className="text-red-500 text-sm">{errors.email.message}</p>
+        )}
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -63,13 +60,20 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
         <Input
           id="password"
           type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
+          placeholder="Enter your password"
+          {...register("password")}
         />
+        {errors.password && (
+          <p className="text-red-500 text-sm">{errors.password.message}</p>
+        )}
       </div>
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Logging in..." : "Login"}
+      <Button
+        type="submit"
+        variant={"black"}
+        className="w-full"
+        disabled={isPending}
+      >
+        {isPending ? "Logging in..." : "Login"}
       </Button>
     </form>
   );
