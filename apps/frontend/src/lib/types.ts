@@ -1,6 +1,6 @@
 export interface Conversation {
-    id: number;
-    name: string;
+    id: string;
+    username: string;
     avatar: string;
 }
 
@@ -11,5 +11,5 @@ export interface Message {
     text: string;
     time: string;
     isMe: boolean;
-    status?: "sent" | "delivered" | "read";
+    status?: "SENT" | "DELIVERED" | "READ";
 }

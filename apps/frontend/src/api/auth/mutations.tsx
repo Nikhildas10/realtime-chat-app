@@ -17,11 +17,13 @@ export const useCreateUser = () => {
 export const useLoginUser = () => {
   const navigate = useNavigate();
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const setUserId=useAuthStore((state)=>state.setUserId);
   return useMutation({
     mutationFn: (data: { email: string; password: string }) =>
       apiClient.post("/user/login", data),
     onSuccess: (data) => {
       setAccessToken(data.data.accessToken);
+      setUserId(data.data.user.id);
       navigate("/chat");
       toast.success("Login successful");
     },
@@ -36,6 +38,6 @@ export const useUpdateProfile = () => {
   return useGenericMutation({
     apiCall: (data: any) => apiClient.patch("/user/profile/" + data.id, data),
     onSuccessMessage: "Profile updated successfully",
-    queryKeyToInvalidate: "user",
+    queryKeyToInvalidate: ["user"],
   });
 };

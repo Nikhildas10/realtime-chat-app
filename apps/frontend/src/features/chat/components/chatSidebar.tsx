@@ -30,10 +30,12 @@ import { useGetUser } from "@/api/auth/queries";
 import { useUpdateProfile } from "@/api/auth/mutations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/store/authStore";
+import { useGetConversations } from "@/api/message/queries";
+import { formatDate } from "@/lib/dateFormat";
 
 interface Conversation {
-  id: number;
-  name: string;
+  id: string;
+  username: string;
   lastMessage: string;
   time: string;
   unread: number;
@@ -41,9 +43,9 @@ interface Conversation {
 }
 
 interface SidebarProps {
-  conversations: Conversation[];
-  selectedConversation: number | null;
-  onSelectConversation: (id: number) => void;
+  conversations: Conversation[],
+  selectedConversation: string | null;
+  onSelectConversation: (id: string) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   isMobile: boolean;
@@ -58,6 +60,7 @@ export function Sidebar({
   isMobile,
 }: SidebarProps) {
   const { data, isLoading } = useGetUser();
+  // const { data: conversations } = useGetConversations();
   const { mutate: updateProfile } = useUpdateProfile();
   const logout = useAuthStore((state) => state.logout);
 
@@ -167,7 +170,7 @@ export function Sidebar({
   }
 
   return (
-    <div className={`border-r border-gray-200 ${isMobile ? "w-full" : "w-80"}`}>
+    <div className={`${isMobile ? "w-full" : "w-80"}`}>
       {/* Logout AlertDialog - Fixed at root level */}
       <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
         <AlertDialogContent className="z-[1000] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white p-6 rounded-lg shadow-lg">
@@ -192,7 +195,7 @@ export function Sidebar({
       </AlertDialog>
 
       {/* Main Sidebar Content */}
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+      <div className="p-[13.5px] border-b border-gray-200 flex justify-between items-center">
         <h1 className="text-xl font-bold text-black">Chats</h1>
         <div className="flex space-x-2">
           <Sheet>
@@ -267,8 +270,8 @@ export function Sidebar({
 
       {/* Conversations List */}
       <ScrollArea className="h-[calc(100vh-140px)]">
-        <div className="p-2">
-          {conversations.map((conversation) => (
+        <div className="p-4">
+          {conversations?.map((conversation: Conversation) => (
             <div
               key={conversation.id}
               className={`p-3 rounded-lg cursor-pointer transition-colors ${
@@ -282,18 +285,20 @@ export function Sidebar({
                 <Avatar className="h-10 w-10">
                   <AvatarImage
                     src={conversation.avatar || "/placeholder.svg"}
-                    alt={conversation.name}
+                    alt={conversation.username}
                   />
                   <AvatarFallback>
-                    {conversation.name?.charAt(0)}
+                    {conversation.username?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center">
                     <p className="font-medium text-black truncate">
-                      {conversation.name}
+                      {conversation.username}
                     </p>
-                    <p className="text-xs text-gray-500">{conversation.time}</p>
+                    <p className="text-xs text-gray-500">
+                      {formatDate(conversation.time)}
+                    </p>
                   </div>
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-gray-500 truncate">

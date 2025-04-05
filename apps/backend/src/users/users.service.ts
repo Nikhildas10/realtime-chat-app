@@ -93,8 +93,8 @@ export class UsersService {
     const user = await prisma.user.findUnique({
       where: { username },
     });
-    console.log(user);
-
+    
+    
     if (user) {
       throw new BadRequestException('username already exists');
     } else {

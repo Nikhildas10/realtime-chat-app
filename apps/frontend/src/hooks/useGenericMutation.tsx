@@ -5,7 +5,7 @@ import { toast } from "sonner";
 type MutationParams<T> = {
   apiCall: (data: T) => Promise<any>;
   onSuccessMessage?: string;
-  queryKeyToInvalidate?: string;
+  queryKeyToInvalidate?: string | string[];
   redirectTo?: string;
 };
 
@@ -38,9 +38,15 @@ export const useGenericMutation = <T,>({
           router(redirectTo);
         }
         if (queryKeyToInvalidate) {
-          await queryClient.invalidateQueries({
-            queryKey: [queryKeyToInvalidate],
-          });
+          const queryKeys = Array.isArray(queryKeyToInvalidate) 
+            ? queryKeyToInvalidate 
+            : [queryKeyToInvalidate];
+            
+          await Promise.all(
+            queryKeys.map(key => 
+              queryClient.invalidateQueries({ queryKey: [key] })
+            )
+          );
         }
       }
     },

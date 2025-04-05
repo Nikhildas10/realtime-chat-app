@@ -8,6 +8,7 @@ import {
   Delete,
   BadRequestException,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -15,6 +16,7 @@ import { createUserDto } from './dto/create-user.dto';
 import { loginUserDto } from './dto/login-user-dto';
 import jwt from 'jsonwebtoken';
 import { credentials } from 'src/config/credentials';
+import { JwtAuthGuard } from './user.guard';
 @Controller('v1/user')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -39,26 +41,9 @@ export class UsersController {
     return await this.usersService.userNameAvailable(username);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('me')
-  async findMe(@Req() req: Request) {    
-    const authHeader = req.headers['authorization'];
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-      throw new BadRequestException('Token is missing');
-    }
-    try {
-      const decodedToken = jwt.verify(
-        token,
-        credentials?.accessTokenSecret as string,
-      );
-
-      if (typeof decodedToken === 'object' && 'id' in decodedToken) {
-        return await this.usersService.findOne(decodedToken.id);
-      }
-
-      throw new BadRequestException('Invalid token');
-    } catch (error) {
-      throw new BadRequestException('Invalid or expired token', error);
-    }
+  async findMe(@Req() req: any) {
+    return await this.usersService.findOne(req.user.id);
   }
 }
