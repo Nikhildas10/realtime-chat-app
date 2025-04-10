@@ -1,10 +1,10 @@
-import { WS_URL } from "@/lib/config";
+import { BASE_URL } from "@/lib/config";
 import { useSocketStore } from "@/store/websocketStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 
-const SOCKET_URL = WS_URL;
+const SOCKET_URL = BASE_URL;
 
 export const useSocket = (userId: string) => {
   const queryClient = useQueryClient();

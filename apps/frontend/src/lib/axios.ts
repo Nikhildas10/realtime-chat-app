@@ -3,7 +3,7 @@ import { BASE_URL } from "./config";
 import { useAuthStore } from "@/store/authStore";
 
 const apiClient = axios.create({
-  baseURL: BASE_URL,
+  baseURL: `${BASE_URL}/api/v1`,
   timeout: 10000,
 });
 
