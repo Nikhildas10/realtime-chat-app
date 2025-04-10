@@ -1,18 +1,42 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { UpdateMessageDto } from './dto/update-message.dto';
 import { prisma } from 'src/utils/prismaConfig.,';
+import { WebsocketGateway } from 'src/utils/websocketGateway';
 
 @Injectable()
 export class MessagesService {
-  create(createMessageDto: CreateMessageDto, senderId: string) {
-    return prisma.message.create({
+  constructor(private readonly websocketGateway: WebsocketGateway) {}
+
+  async create(createMessageDto: CreateMessageDto, senderId: string) {
+
+    const initialStatus = this.websocketGateway.isUserOnline(
+      createMessageDto.receiverId,
+    )
+      ? 'DELIVERED'
+      : 'SENT';
+
+    const message = await prisma.message.create({
       data: {
         senderId: senderId,
         receiverId: createMessageDto.receiverId,
         text: createMessageDto.text,
+        status: initialStatus,
       },
     });
+
+    if (initialStatus === 'DELIVERED') {
+      const senderSockets = this.websocketGateway.getSocketIds(senderId);
+      senderSockets.forEach((socketId) => {
+        this.websocketGateway.server
+          .to(socketId)
+          .emit('message_status_updated', {
+            partnerId: createMessageDto.receiverId,
+            status: 'DELIVERED',
+          });
+      });
+    }
+
+    return message;
   }
 
   async findAll(userId: string) {
@@ -54,7 +78,9 @@ export class MessagesService {
           where: {
             senderId: partnerId,
             receiverId: userId,
-            status: 'SENT',
+            status: {
+              not: 'READ',
+            },
           },
         });
 
@@ -89,6 +115,14 @@ export class MessagesService {
         orderBy: {
           createdAt: 'asc',
         },
+        select: {
+          id: true,
+          text: true,
+          senderId: true,
+          receiverId: true,
+          status: true,
+          createdAt: true,
+        },
       }),
       prisma.user.findUnique({
         where: { id: receiverId },
@@ -107,20 +141,63 @@ export class MessagesService {
   }
 
   async update(userId: string, senderId: string) {
-    await prisma.message.updateMany({
+    const updatedMessages = await prisma.message.updateMany({
       where: {
         senderId: senderId,
         receiverId: userId,
-        status: 'SENT',
+        status: { in: ['SENT', 'DELIVERED'] },
       },
       data: {
         status: 'READ',
       },
     });
-    return { message: 'Messages marked as delivered' };
+
+    if (updatedMessages.count > 0) {
+      const senderSockets = this.websocketGateway.getSocketIds(senderId);
+      senderSockets.forEach((socketId) => {
+        this.websocketGateway.server
+          .to(socketId)
+          .emit('message_status_updated', {
+            partnerId: userId,
+            status: 'READ',
+          });
+      });
+    }
+
+    return { count: updatedMessages.count };
   }
 
   remove(id: number) {
     return `This action removes a #${id} message`;
+  }
+
+  async markUndeliveredMessagesAsDelivered(userId: string) {
+    const undeliveredMessages = await prisma.message.findMany({
+      where: {
+        receiverId: userId,
+        status: 'SENT',
+      },
+    });
+
+    for (const message of undeliveredMessages) {
+      await prisma.message.update({
+        where: { id: message.id },
+        data: { status: 'DELIVERED' },
+      });
+
+      const senderSocketIds = this.websocketGateway.getSocketIds(
+        message.senderId,
+      );
+      senderSocketIds.forEach((socketId) => {
+        this.websocketGateway.server
+          .to(socketId)
+          .emit('message_status_updated', {
+            partnerId: userId,
+            status: 'DELIVERED',
+          });
+      });
+    }
+
+    return { count: undeliveredMessages.length };
   }
 }

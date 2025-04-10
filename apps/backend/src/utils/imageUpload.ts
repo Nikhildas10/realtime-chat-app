@@ -1,7 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 import { credentials } from 'src/config/credentials';
-// Configure Cloudinary
 cloudinary.config({
   cloud_name: credentials.cloudinaryCloudName,
   api_key: credentials.cloudinaryApiKey,

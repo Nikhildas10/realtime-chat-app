@@ -43,7 +43,6 @@ export const ResetPasswordPage = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call with token verification
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setIsSuccess(true);
     } finally {

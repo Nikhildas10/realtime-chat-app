@@ -30,7 +30,6 @@ import { useGetUser } from "@/api/auth/queries";
 import { useUpdateProfile } from "@/api/auth/mutations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/store/authStore";
-import { useGetConversations } from "@/api/message/queries";
 import { formatDate } from "@/lib/dateFormat";
 
 interface Conversation {
@@ -40,10 +39,11 @@ interface Conversation {
   time: string;
   unread: number;
   avatar: string;
+  isOnline: boolean;
 }
 
 interface SidebarProps {
-  conversations: Conversation[],
+  conversations: Conversation[];
   selectedConversation: string | null;
   onSelectConversation: (id: string) => void;
   searchQuery: string;
@@ -60,7 +60,6 @@ export function Sidebar({
   isMobile,
 }: SidebarProps) {
   const { data, isLoading } = useGetUser();
-  // const { data: conversations } = useGetConversations();
   const { mutate: updateProfile } = useUpdateProfile();
   const logout = useAuthStore((state) => state.logout);
 
@@ -282,15 +281,22 @@ export function Sidebar({
               onClick={() => onSelectConversation(conversation.id)}
             >
               <div className="flex items-center space-x-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage
-                    src={conversation.avatar || "/placeholder.svg"}
-                    alt={conversation.username}
+                <div className="relative">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage
+                      src={conversation.avatar || "/placeholder.svg"}
+                      alt={conversation.username}
+                    />
+                    <AvatarFallback>
+                      {conversation.username?.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div 
+                    className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+                      conversation.isOnline ? 'bg-green-500' : 'bg-gray-400'
+                    }`}
                   />
-                  <AvatarFallback>
-                    {conversation.username?.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center">
                     <p className="font-medium text-black truncate">

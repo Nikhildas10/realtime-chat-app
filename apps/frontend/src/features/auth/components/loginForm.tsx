@@ -1,17 +1,12 @@
-
-import type React from "react";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link, useNavigate } from "react-router-dom";
-import { IUser } from "@repo/types";
+import { Link } from "react-router-dom";
 import { useLoginUser } from "@/api/auth/mutations";
 
-// 🔹 Define Zod Schema for validation
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),

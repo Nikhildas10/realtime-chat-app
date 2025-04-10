@@ -25,6 +25,8 @@
     "@nestjs/core": "^11.0.11",
     "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/platform-express": "^11.0.11",
+    "@nestjs/platform-socket.io": "^11.0.13",
+    "@nestjs/websockets": "^11.0.13",
     "@prisma/client": "^6.5.0",
     "@repo/types": "workspace:*",
     "bcrypt": "^5.1.1",
@@ -37,7 +39,8 @@
     "morgan": "^1.10.0",
     "prisma": "^6.5.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

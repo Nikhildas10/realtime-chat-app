@@ -4,7 +4,6 @@ import apiClient from "@/lib/axios";
 export const useSendMessage = () => {
   return useGenericMutation({
     apiCall: (data) => apiClient.post("/message", data),
-    onSuccessMessage: "Message sent successfully",
     queryKeyToInvalidate: ["messages", "conversations"],
   });
 };

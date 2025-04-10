@@ -2,48 +2,35 @@ import { useState, useEffect } from "react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { Sidebar } from "../components/chatSidebar";
 import { ChatInterface } from "../components/chatInterface";
-import { mockConversations, mockMessages } from "@/lib/mockchats";
 import { useGetConversations } from "@/api/message/queries";
 import { Conversation } from "@/lib/types";
+import { useSocketStore } from "@/store/websocketStore";
+import { useSocket } from "@/hooks/useSocket";
+import { useAuthStore } from "@/store/authStore";
 
 export default function ChatPage() {
-  const [selectedConversation, setSelectedConversation] = useState<
-    string | null
-  >("");
-  // const [messages, setMessages] = useState(mockMessages);
-  // const [newMessage, setNewMessage] = useState("");
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [showConversations, setShowConversations] = useState(!isMobile);
+  
+  const { data: conversations } = useGetConversations();
+  const onlineUsers = useSocketStore((state) => state.onlineUsers);
+  const userId = useAuthStore((state) => state.userId);
+
+  useSocket(userId as string);
+
   useEffect(() => {
     setShowConversations(!isMobile || !selectedConversation);
   }, [isMobile, selectedConversation]);
 
-  const { data: conversations } = useGetConversations();
-  const filteredConversations = conversations?.filter(
+  const filteredConversations = conversations?.map((conversation: Conversation) => ({
+    ...conversation,
+    isOnline: onlineUsers.includes(conversation.id)
+  })).filter(
     (conversation: Conversation) =>
       conversation.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // const handleSendMessage = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (newMessage.trim() === "") return;
-
-  //   const newMsg = {
-  //     id: messages.length + 1,
-  //     senderId: "me",
-  //     receiverId: selectedConversation || 1,
-  //     text: newMessage,
-  //     time: new Date().toLocaleTimeString([], {
-  //       hour: "2-digit",
-  //       minute: "2-digit",
-  //     }),
-  //     isMe: true,
-  //   };
-
-  //   setMessages([...messages, newMsg]);
-  //   setNewMessage("");
-  // };
 
   const handleConversationSelect = (id: string) => {
     setSelectedConversation(id);
@@ -53,14 +40,12 @@ export default function ChatPage() {
   };
 
   const handleBackToConversations = () => {
-    if (isMobile) {
-      setShowConversations(true);
-    }
+    setShowConversations(true);
+    setSelectedConversation(null);
   };
 
   return (
-    <div className="flex h-screen  bg-white">
-      {/* Sidebar - 20% width on desktop, full width on mobile when shown */}
+    <div className="flex h-screen bg-white">
       <div
         className={`
           ${isMobile ? "absolute inset-0 z-10" : "w-1/5"} 
@@ -78,7 +63,6 @@ export default function ChatPage() {
         />
       </div>
 
-      {/* Chat area - 80% width on desktop, full width on mobile */}
       <div
         className={`
           ${isMobile ? "w-full" : "w-4/5"}
@@ -88,9 +72,6 @@ export default function ChatPage() {
         {selectedConversation && (
           <ChatInterface
             selectedConversation={selectedConversation}
-            // newMessage={newMessage}
-            // onMessageChange={setNewMessage}
-            // onSendMessage={handleSendMessage}
             onBackToConversations={handleBackToConversations}
             isMobile={isMobile}
           />

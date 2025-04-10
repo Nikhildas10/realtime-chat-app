@@ -13,10 +13,11 @@ export const useGetConversations = () => {
 
 export const useGetMessages = (receiverId: string) => {
   return useQuery({
-    queryKey: ["messages"],
+    queryKey: ["messages", receiverId], 
     queryFn: async () => {
       const response = await apiClient.get(`/message/${receiverId}`);
       return response.data;
     },
+    enabled: !!receiverId, 
   });
 };

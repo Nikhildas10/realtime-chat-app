@@ -19,7 +19,6 @@ export const ForgotPasswordPage = () => {
   const handleSubmit = async (data: { email: string }) => {
     setIsLoading(true);
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setEmail(data.email);
       setEmailSent(true);

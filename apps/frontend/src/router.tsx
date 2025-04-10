@@ -1,10 +1,6 @@
 import type React from "react";
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-// import { LoginPage } from "./features/auth/pages/loginPage";
 import { SignupPage } from "./features/auth/pages/signupPage";
-// import { ChatPage } from "./features/chat/pages/chatPage";
 import { Layout } from "./components/layout";
 import { LoginPage } from "./features/auth/pages/loginPage";
 import { ForgotPasswordPage } from "./features/auth/pages/forgotPasswordPage";

@@ -4,24 +4,20 @@ export const formatDate = (dateString: string): string => {
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    // Helper to check if two dates are the same day
     const isSameDay = (d1: Date, d2: Date) => {
         return d1.getDate() === d2.getDate() &&
             d1.getMonth() === d2.getMonth() &&
             d1.getFullYear() === d2.getFullYear();
     };
 
-    // If it's today, return "Today"
     if (isSameDay(date, now)) {
         return 'Today';
     }
 
-    // If it's yesterday, return "Yesterday"
     if (isSameDay(date, yesterday)) {
         return 'Yesterday';
     }
 
-    // For other dates, return formatted date
     return date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',

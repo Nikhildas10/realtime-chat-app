@@ -5,11 +5,16 @@ export interface Conversation {
 }
 
 export interface Message {
-    id: number;
-    senderId: string | number;
+    id: string | number;
+    senderId: string;
     receiverId: string | number;
     text: string;
     time: string;
     isMe: boolean;
-    status?: "SENT" | "DELIVERED" | "READ";
+    status?: 'SENT' | 'DELIVERED' | 'READ';
+}
+
+export interface Recipient {
+    username: string;
+    avatar?: string;
 }

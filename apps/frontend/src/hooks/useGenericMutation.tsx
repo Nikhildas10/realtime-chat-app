@@ -11,7 +11,7 @@ type MutationParams<T> = {
 
 export const useGenericMutation = <T,>({
   apiCall,
-  onSuccessMessage = "Operation successful",
+  onSuccessMessage = "",
   queryKeyToInvalidate,
   redirectTo,
 }: MutationParams<T>) => {
@@ -33,17 +33,19 @@ export const useGenericMutation = <T,>({
           toast.error("An unknown error occurred");
         }
       } else {
-        toast.success(onSuccessMessage);
+        if (onSuccessMessage) {
+          toast.success(onSuccessMessage);
+        }
         if (redirectTo) {
           router(redirectTo);
         }
         if (queryKeyToInvalidate) {
-          const queryKeys = Array.isArray(queryKeyToInvalidate) 
-            ? queryKeyToInvalidate 
+          const queryKeys = Array.isArray(queryKeyToInvalidate)
+            ? queryKeyToInvalidate
             : [queryKeyToInvalidate];
-            
+
           await Promise.all(
-            queryKeys.map(key => 
+            queryKeys.map((key) =>
               queryClient.invalidateQueries({ queryKey: [key] })
             )
           );
@@ -54,6 +56,6 @@ export const useGenericMutation = <T,>({
 
   return {
     ...mutation,
-    status: mutation.status, // Expose status property
+    status: mutation.status,
   };
 };

@@ -41,9 +41,4 @@ export class MessagesController {
   update(@Param('id') id: string, @Req() req: any) {
     return this.messagesService.update(req.user.id, id);
   }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.messagesService.remove(+id);
-  }
 }

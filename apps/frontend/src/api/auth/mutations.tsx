@@ -1,7 +1,7 @@
 import { useGenericMutation } from "@/hooks/useGenericMutation";
 import apiClient from "@/lib/axios";
 import { useAuthStore } from "@/store/authStore";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -9,7 +9,6 @@ export const useCreateUser = () => {
   return useGenericMutation({
     apiCall: (data) => apiClient.post("/user/register", data),
     onSuccessMessage: "User created successfully",
-    // queryKeyToInvalidate:'users',
     redirectTo: "/login",
   });
 };
