@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LoginForm } from "../components/loginForm";
-import { IUser } from "@repo/types";
 
 export const LoginPage = () => {
   return (
