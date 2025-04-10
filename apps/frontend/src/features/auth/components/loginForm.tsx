@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useLoginUser } from "@/api/auth/mutations";
 
 const loginSchema = z.object({
@@ -13,15 +13,25 @@ const loginSchema = z.object({
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
- 
+
 export const LoginForm = () => {
+  const [searchParams] = useSearchParams();
+
+  const emailFromQuery = searchParams.get("email") || "";
+  const passwordFromQuery = searchParams.get("password") || "";
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: emailFromQuery,
+      password: passwordFromQuery,
+    },
   });
+
   const { mutate: loginUser, isPending } = useLoginUser();
 
   const onSubmit = async (data: LoginFormValues) => {
