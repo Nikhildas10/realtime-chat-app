@@ -4,7 +4,7 @@ import { useAuthStore } from "@/store/authStore";
 
 const apiClient = axios.create({
   baseURL: `${BASE_URL}/api/v1`,
-  timeout: 10000,
+  timeout: 30000,
 });
 
 const getToken = () => {
