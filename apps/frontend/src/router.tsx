@@ -7,6 +7,7 @@ import { ForgotPasswordPage } from "./features/auth/pages/forgotPasswordPage";
 import { ResetPasswordPage } from "./features/auth/pages/resetPasswordPage";
 import ChatPage from "./features/chat/pages/chatPage";
 import { useAuthStore } from "./store/authStore";
+import { NotFoundPage } from "./components/notfoundPage";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -38,6 +39,7 @@ export const Router = () => {
             }
           />
         </Route>
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
