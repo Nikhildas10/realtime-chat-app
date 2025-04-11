@@ -42,7 +42,10 @@ export class MessagesService {
   async findAll(userId: string) {
     const conversations = await prisma.message.findMany({
       where: {
-        OR: [{ senderId: userId }, { receiverId: userId }],
+        OR: [
+          { senderId: userId, receiverId: { not: userId } },
+          { receiverId: userId, senderId: { not: userId } }
+        ],
       },
       orderBy: {
         createdAt: 'desc',
@@ -65,7 +68,32 @@ export class MessagesService {
       },
     });
 
+    // Get all users except the current user
+    const allUsers = await prisma.user.findMany({
+      where: {
+        id: {
+          not: userId,
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        avatar: true,
+      },
+    });
+
     const chatPartnersMap = new Map<string, any>();
+
+    for (const user of allUsers) {
+      chatPartnersMap.set(user.id, {
+        id: user.id,
+        username: user.username,
+        avatar: user.avatar,
+        lastMessage: null,
+        time: null,
+        unread: 0,
+      });
+    }
 
     for (const message of conversations) {
       const partnerId =
@@ -73,7 +101,7 @@ export class MessagesService {
       const partner =
         message.senderId === userId ? message.receiver : message.sender;
 
-      if (!chatPartnersMap.has(partnerId)) {
+      if (!chatPartnersMap.get(partnerId)?.lastMessage) {
         const unreadCount = await prisma.message.count({
           where: {
             senderId: partnerId,
@@ -95,11 +123,13 @@ export class MessagesService {
       }
     }
 
-    const formattedConversations = Array.from(chatPartnersMap.values()).sort(
-      (a, b) => {
-        return new Date(b.time).getTime() - new Date(a.time).getTime();
-      },
-    );
+    const formattedConversations = Array.from(chatPartnersMap.values()).sort((a, b) => {
+      if (a.lastMessage && !b.lastMessage) return -1;
+      if (!a.lastMessage && b.lastMessage) return 1;
+      if (!a.lastMessage && !b.lastMessage) return a.username.localeCompare(b.username);
+      return new Date(b.time).getTime() - new Date(a.time).getTime();
+    });
+
     return formattedConversations;
   }
 

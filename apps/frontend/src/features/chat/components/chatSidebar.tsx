@@ -35,10 +35,10 @@ import { formatDate } from "@/lib/dateFormat";
 interface Conversation {
   id: string;
   username: string;
-  lastMessage: string;
-  time: string;
+  lastMessage: string | null;
+  time: string | null;
   unread: number;
-  avatar: string;
+  avatar: string | null;
   isOnline: boolean;
 }
 
@@ -303,16 +303,16 @@ export function Sidebar({
                       {conversation.username}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {formatDate(conversation.time)}
+                      {conversation.time?formatDate(conversation.time):""}
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-gray-500 truncate">
-                      {conversation.lastMessage}
+                      {conversation.lastMessage || ""}
                     </p>
                     {conversation.unread > 0 && (
                       <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-black rounded-full">
-                        {conversation.unread}
+                        {conversation.unread || 0}
                       </span>
                     )}
                   </div>
